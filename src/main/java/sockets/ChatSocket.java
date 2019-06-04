@@ -3,6 +3,7 @@ package sockets;
 import com.google.gson.Gson;
 import models.Message;
 import models.User;
+import services.MessageService;
 import services.UserService;
 
 import javax.inject.Inject;
@@ -15,6 +16,9 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 @ServerEndpoint("/chat")
 public class ChatSocket {
+
+    @Inject
+    MessageService messageService;
 
     @Inject
     UserService userService;
@@ -38,7 +42,7 @@ public class ChatSocket {
         User authenticatedUser = userService.checkIfUserAuthenticated(map.get("token").toString());
         // Handle new messages
         if (authenticatedUser != null) {
-            Message message = new Message(map.get("message").toString(), authenticatedUser, System.currentTimeMillis() / 1000L);
+            Message message = messageService.addMessage(map.get("message").toString(), authenticatedUser);
             try {
                 broadcast(gson.toJson(message));
             } catch (EncodeException e) {
